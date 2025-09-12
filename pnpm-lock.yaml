@@ -8,17 +8,17 @@ importers:
   .:
     dependencies:
       zod:
-        specifier: ^4.0.17
-        version: 4.0.17
+        specifier: 4.1.8
+        version: 4.1.8
     devDependencies:
       "@types/node":
-        specifier: ^24.3.0
+        specifier: 24.3.0
         version: 24.3.0
       tsx:
-        specifier: ^4.20.4
+        specifier: 4.20.4
         version: 4.20.4
       typescript:
-        specifier: ^5.9.2
+        specifier: 5.9.2
         version: 5.9.2
 
 packages:
@@ -312,10 +312,10 @@ packages:
         integrity: sha512-t5Fy/nfn+14LuOc2KNYg75vZqClpAiqscVvMygNnlsHBFpSXdJaYtXMcdNLpl/Qvc3P2cB3s6lOV51nqsFq4ag==,
       }
 
-  zod@4.0.17:
+  zod@4.1.8:
     resolution:
       {
-        integrity: sha512-1PHjlYRevNxxdy2JZ8JcNAw7rX8V9P1AKkP+x/xZfxB0K5FYfuV+Ug6P/6NVSR2jHQ+FzDDoDHS04nYUsOIyLQ==,
+        integrity: sha512-5R1P+WwQqmmMIEACyzSvo4JXHY5WiAFHRMg+zBZKgKS+Q1viRa0C1hmUKtHltoIFKtIdki3pRxkmpP74jnNYHQ==,
       }
 
 snapshots:
@@ -450,4 +450,4 @@ snapshots:
 
   undici-types@7.10.0: {}
 
-  zod@4.0.17: {}
+  zod@4.1.8: {}
