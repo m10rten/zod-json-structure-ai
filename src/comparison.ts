@@ -13,8 +13,8 @@ import {
 // DEMO CONFIGURATION - Change these flags to test different approaches
 // ============================================================================
 
-const USE_ZOD = true; // Toggle Zod validation on/off
-const USE_METADATA = true; // Toggle JSON Structure metadata on/off
+const USE_ZOD = false; // Toggle Zod validation on/off
+const USE_METADATA = false; // Toggle JSON Structure metadata on/off
 
 // ============================================================================
 // SAMPLE DATA - Realistic skiing conditions
@@ -225,7 +225,7 @@ function getSafetyLevel(options: SchemaGenerationOptions): string {
 // ============================================================================
 
 // Run the main demo
-// runComprehensiveDemo();
+runComprehensiveDemo();
 
 // Uncomment to compare all configurations:
-compareAllConfigurations();
+// compareAllConfigurations();
