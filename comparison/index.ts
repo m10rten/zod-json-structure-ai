@@ -7,7 +7,7 @@ import {
   simulateAIDecision_WithMetadata,
   getConfigurationDescription,
   getSchemaPreview,
-} from "./main";
+} from "./module";
 
 // ============================================================================
 // DEMO CONFIGURATION - Change these flags to test different approaches

@@ -19,4 +19,4 @@ const ski = z
     name: "SkiDataArguments",
   });
 
-console.log(z.toJSONSchema(ski));
+console.log(JSON.stringify(z.toJSONSchema(ski), null, 2));
