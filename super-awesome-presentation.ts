@@ -2,7 +2,7 @@ import { TypeView } from "./typeview";
 
 /**
  * 5-min flow (short slides, more of them): Problem → Solution (3) → Demo (dialogs + code) → Implementation (3) → Ladder → Close
- * - Start with Ski (30°F vs 30°C), no medicine example
+ * - Start with Ski (25°F vs 25°C), no medicine example
  * - Data is unknown before the question; after the question the AI fetches runtime data from MCP (🖥️)
  * - No ask-back; the AI displays MCP data with units and normalizes if needed
  * - Use metadata keys: unit, choices, default (no unitChoices/enum/recommendedUnit)
@@ -25,13 +25,16 @@ export async function runPresentationFlow(): Promise<void> {
   tv.addSlide({
     title: "Introduction",
     content: `
-Using Zod metadata and JSON Schema to guide AI I/O
+Make AI answers predictable and easy to trust with Schema, Metadata, and Zod.
 
-Contents:
-- Problem: ambiguity (Ski example)
-- Solution: Schema + metadata + Zod
-- Demo: dialogs + code (before/after, MCP data)
-- Implementation: 3 quick steps + quality ladder
+You will see:
+- Problem: ambiguous data (Ski example)
+- Why: what happens and why is this a problem
+- Solution: JSON Schema + metadata + Zod for validation
+- Demo: short dialog + code (before/after, MCP data)
+- Implementation: 3 steps towards a stable & context-aware AI.
+
+Based on: WeAreDevelopers 📍 Berlin
         `,
   });
 
@@ -48,16 +51,16 @@ Contents:
       },
       {
         mode: "accumulate",
-        content: `🖥️ MCP: temperature=30, wind=20, visibility="good"`,
+        content: `🖥️ MCP: temperature=25, wind=20, visibility="good"`,
       },
       {
         mode: "accumulate",
-        content: `🤖 AI: 30 sounds warm; probably fine. 20 wind seems okay. "Good" visibility sounds nice.`,
+        content: `🤖 AI: 25 is quite warm (assuming Celsius); probably fine. 20 wind seems okay. "Good" visibility sounds nice.`,
       },
       {
         mode: "accumulate",
         content: `
-Issue: units and scale are guessed → inconsistent answers.`,
+Issue: numbers/labels without units or defined scales → the AI guesses → inconsistent answers.`,
       },
     ],
   });
@@ -66,10 +69,13 @@ Issue: units and scale are guessed → inconsistent answers.`,
   tv.addSlide({
     title: "Why it matters — units flip meaning",
     content: `
-- 30°F ≈ -1°C → potentially OK
-- 30°C → Summer → likely not great
+- 25°F ≈ -4°C → chilly but skiable
+- 25°C → summer → no snow or very slushy
+- 30K ≈ -243°C → impossible
+
 - Wind: 20 km/h vs 20 mph → different conditions
-- "good" must be on a defined scale
+
+- "good" visibility only makes sense on a known scale
         `,
   });
 
@@ -77,11 +83,22 @@ Issue: units and scale are guessed → inconsistent answers.`,
   tv.addSlide({
     title: "Solution — make intent explicit",
     content: `
-Stop guessing by defining:
-- Structure + constraints → JSON Schema
-- Guidance → metadata (units, enum, default)
-- Single source → Define in Zod → to JSON Schema → prompt + validate
+Stop guessing. Define and enforce:
+- Structure + constraints → JSON Schema (shared shape)
+- Guidance → metadata on each field (unit, choices, default)
+- Validation → Zod at runtime (input & output)
+
         `,
+    stages: [
+      {
+        mode: "accumulate",
+        content: "Flow Example:",
+      },
+      {
+        mode: "accumulate",
+        content: `- user → (text) AI/tool → (json schema) MCP → (structured data) AI → (normalized answer)`,
+      },
+    ],
   });
 
   // 4: JSON Schema — constraints
@@ -89,11 +106,11 @@ Stop guessing by defining:
     title: "JSON Schema — constraints",
     content: `
 Defines:
-- properties
-- types
-- custom fields
+- properties, types, required, enum, minimum/maximum, etc.
+- A standard format to prompt models and to keep I/O consistent
 
-Use it to constrain and validate I/O. Choices/default live in metadata.
+Use it to constrain and give context to AI/MCP.
+Add metadata (unit, choices, default) to guide interpretation and normalization.
         `,
   });
 
@@ -101,23 +118,27 @@ Use it to constrain and validate I/O. Choices/default live in metadata.
   tv.addSlide({
     title: "Metadata — guidance",
     content: `
-Per property add (for example):
-- unit: '°C', 'km/h'; for temperature units, or visibility scale choices
-- enum: ['good','bad','fair'] for fixed values with different options
-- default: '°C' (preferred unit)
-- description, examples, context related fields
+Per property add (examples):
+- unit: '°C', 'km/h'
+- choices: ['°C', '°F', 'K'] for allowed units/scales
+- default: '°C' (preferred normalized unit)
+- description, examples, context
+
+The model uses metadata to interpret MCP data and normalize outputs.
         `,
   });
 
-  // 6: Zod → JSON Schema
+  // 6: Schema-first, Zod as a tool
   tv.addSlide({
-    title: "Zod → JSON Schema",
+    title: "Schema-first, Zod as a tool",
     content: `
-Define once in Zod with .meta() and .describe().
+JSON Schema at the center:
+- Define in Zod for TS ergonomics; export JSON Schema for prompting and AI context.
+- Validate at runtime with Zod in your app.
+- JSON Schema is the contract; Zod is the DX-friendly tool.
 
-Generate JSON Schema via:
-
-const schema = z.toJsonSchema(SkiDataArguments);
+Example generation path:
+const json = z.toJsonSchema(SkiDataArguments);
         `,
   });
 
@@ -141,21 +162,21 @@ const SkiDataArguments = z.object({
 const SkiDataArguments = z
   .object({
     temperature: z.number().meta({
-      description: 'Ambient Temperature Outside at average',
-      units: ['°C', '°F', 'K'],
+      description: 'Ambient temperature outside (average)',
+      choices: ['°C', '°F', 'K'],
       default: '°C',
     }),
     wind: z.number().meta({
       description: 'Average wind speed',
       unit: 'km/h',
+      // choices optional if you only accept km/h
     }),
     visibility: z.enum(['poor', 'fair', 'good', 'excellent']).meta({
       description: 'Visibility on a defined scale',
+      // constraints belong in the schema (enum), not metadata
     }),
   })
-  .meta({
-    name: 'SkiDataArguments',
-  });
+  .meta({ name: 'SkiDataArguments' });
 `,
       },
     ],
@@ -165,18 +186,19 @@ const SkiDataArguments = z
   tv.addSlide({
     title: "Demo — Generate JSON Schema",
     content: `
-const schema = z.toJsonSchema(SkiDataArguments);
-console.log(JSON.stringify(schema, null, 2));
+const json = z.toJsonSchema(SkiDataArguments);
+console.log(JSON.stringify(json, null, 2));
 
 Result (short):
 {
-  "title": "SkiDataArguments",
+  "name": "SkiDataArguments",
   "type": "object",
   "properties": {
     "temperature": {
       "type": "number",
-      "description": "Ambient Temperature Outside at average",
-      "units": ["°C", "°F", "K"],
+      "description": "Ambient temperature outside (average)",
+      "unit": "°C",
+      "choices": ["°C", "°F", "K"],
       "default": "°C"
     },
     "wind": {
@@ -198,13 +220,13 @@ Result (short):
 
   // 9: Bonus — After demo: structured output (AI SDK)
   tv.addSlide({
-    title: "Bonus — After demo: structured output (AI SDK)",
+    title: "Bonus — After demo: structured output (AI SDK + Zod)",
     stages: [
       {
         mode: "replace",
         content: `
-Before (text output):
-- AI answers in prose; no enforced structure → harder to consume programmatically.
+Before (free-form text):
+- AI answers in prose; hard to consume and easy to misinterpret.
 `,
       },
       {
@@ -232,15 +254,15 @@ const { object } = await generateObject({
   schema: SkiDecision,
   prompt:
     "Normalize MCP data to default units (°C, km/h) and decide if it's good to ski. " +
-    "MCP: temperature=30 °F, wind=20 km/h, visibility=good.",
+    "MCP: temperature=25 °F, wind=20 km/h, visibility=good.",
 });
 
 // Example result:
 console.log(object);
 // → {
 //   decision: "yes",
-//   reason: "About -1 °C, 20 km/h, visibility good — acceptable.",
-//   data: { temperatureC: -1, windKmh: 20, visibility: "good" }
+//   reason: "About -4 °C, 20 km/h, visibility good — acceptable.",
+//   data: { temperatureC: -4, windKmh: 20, visibility: "good" }
 // }
 `,
       },
@@ -250,7 +272,7 @@ console.log(object);
   // 10: Dialog — after (MCP data → structured answer)
   tv.addSlide({
     title: "Dialog — after (MCP data → structured answer)",
-    content: `With metadata, the AI fetches runtime data, normalizes to default units, and returns a SkiDecision object.`,
+    content: `With JSON Schema + metadata, the AI fetches runtime data, normalizes to default units, validates shape, and returns a SkiDecision object.`,
     stages: [
       {
         mode: "append",
@@ -262,71 +284,57 @@ console.log(object);
       },
       {
         mode: "accumulate",
-        content: `🖥️ MCP: temperature=30 °F, wind=20 km/h, visibility="good"`,
+        content: `🖥️ MCP: temperature=25 °F, wind=20 km/h, visibility="good"`,
       },
       {
         mode: "accumulate",
         content: `🤖 AI (SkiDecision): {
   "decision": "yes",
-  "reason": "About -1 °C, 20 km/h, visibility good — acceptable.",
-  "data": { "temperatureC": -1, "windKmh": 20, "visibility": "good" }
+  "reason": "About -4 °C, 20 km/h, visibility good — acceptable.",
+  "data": { "temperatureC": -4, "windKmh": 20, "visibility": "good" }
 }`,
       },
     ],
   });
 
-  // 11: Output Quality Ladder
+  // 11: Implementation — Steps 1–3 using accumulate
   tv.addSlide({
-    title: "Output quality ladder",
-    content: `
-Worst → Good (& Best):
-- Free text
-- Validation only
-- JSON Schema (shape)
-- JSON Schema + metadata (unit, choices incl. 'K', default, examples)
-- (With structured output & validation on ai)
-        `,
-  });
-
-  // 12: Implementation — Steps 1–3 using accumulate
-  tv.addSlide({
-    title: "Implementation — Steps 1–3",
+    title: "Implementation — Steps 1-3",
     content: "Three quick steps to production:",
     stages: [
       {
         mode: "accumulate",
         content: `
-- Step 1 (Define in Zod)
-  - Use Zod .describe()/.meta() per property
-  - Add unit/enum/default to remove ambiguity
-  - Provide 1–2 examples for tricky fields`,
+- Step 1 (Define schema)
+  - Author in Zod; generate JSON Schema (single source you can share)
+  - Add per-property metadata: unit, choices, default; include description/examples`,
       },
       {
         mode: "accumulate",
         content: `
-- Step 2 (Generate + prompt)
-  - Generate with z.toJsonSchema(SkiDataArguments)
-  - Provide schema + descriptions in tool/system prompt
-  - AI fetches runtime data from MCP (🖥️) and uses metadata to interpret/normalize`,
+- Step 2 (Prompt with schema)
+  - Provide the JSON Schema (and metadata) in the tool/system prompt
+  - AI fetches runtime data from MCP (🖥️), shows units, and normalizes to defaults
+  - Ask the model for structured output matching your schema`,
       },
       {
         mode: "accumulate",
         content: `
-- Step 3 (Validate)
-  - Use zod to validate structured output (see \`ai\` sdk)
-  - Reject or auto-correct invalid payloads
-`,
+- Step 3 (Validate + normalize)
+  - Validate outputs with Zod
+  - Normalize units to defaults (e.g., °C, km/h)
+  - Reject or auto-correct invalid payloads`,
       },
     ],
   });
 
-  // 13: Conclusion
+  // 12: Conclusion
   tv.addSlide({
     title: "Conclusion",
     content: `
-- Property metadata (units/context) → safety + clarity
-- JSON Schema → structure-first prompting + validation
-- Zod + I/O → single source of truth & automated & sanitised I/O
+- Property metadata (unit/choices/default) → clarity, stability, safer I/O
+- JSON Schema → structure-first prompting + cross-tool consistency
+- Zod → great developer ergonomics; generate schema; validate at runtime
         `,
   });
 
@@ -336,7 +344,7 @@ Worst → Good (& Best):
     content: `
 Thanks! Use ← → to navigate, 'q' to quit.
 
-Short, consistent metadata → better AI I/O.
+Short, consistent metadata + Zod validation → better, more stable AI I/O.
         `,
   });
 
