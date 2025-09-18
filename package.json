@@ -5,14 +5,17 @@
   "private": true,
   "author": "m10rten",
   "dependencies": {
+    "typeview": "0.1.0",
     "zod": "4.1.8"
   },
   "devDependencies": {
     "@types/node": "24.3.0",
+    "esbuild": "^0.25.10",
     "tsx": "4.20.4",
     "typescript": "5.9.2"
   },
   "scripts": {
-    "superawesomepresentation": "pnpm tsx super-awesome-presentation.ts"
+    "superawesomepresentation": "pnpm tsx super-awesome-presentation.ts",
+    "bundle": "node esbuild.config.js"
   }
 }

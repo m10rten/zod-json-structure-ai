@@ -1,4 +1,4 @@
-import { TypeView } from "../typeview";
+import { TypeView } from "typeview";
 import { fetchSkiConditions, SkiRawConditions } from "./mcp.fake";
 import { generateObject } from "./ai.fake";
 import {

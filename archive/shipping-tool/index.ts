@@ -8,7 +8,7 @@ import {
   structurizePackageNoSchema,
   structurizePackageWithSchema,
 } from "./structurizer";
-import { TypeView, Slide } from "../typeview";
+import { TypeView, Slide } from "typeview";
 
 async function main() {
   // Same use case for both scenarios. Intentional inches/pounds to highlight unit handling.

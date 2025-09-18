@@ -1,4 +1,4 @@
-import { TypeView } from "./typeview";
+import { TypeView } from "typeview";
 
 /**
  * 5-min flow (short slides, more of them): Problem → Solution (3) → Demo (dialogs + code) → Implementation (3) → Ladder → Close
